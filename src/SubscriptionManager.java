@@ -81,6 +81,40 @@ public class SubscriptionManager {
         return nearest;
     }
 
+    public void printAdvice() {
+        if (count == 0) {
+            System.out.println("Список підписок порожній, тож відмовлятися поки немає від чого.");
+            return;
+        }
+        double monthlySavings = 0;
+        int adviceCount = 0;
+        for (int i = 0; i < count; i++) {
+            Subscription subscription = subscriptions[i];
+            if (subscription.getUsesPerMonth() == 0) {
+                System.out.printf("%s — ти не користуєшся, а платиш %.2f грн на місяць%n",
+                        subscription.getName(), subscription.getMonthlyPrice());
+                monthlySavings += subscription.getMonthlyPrice();
+                adviceCount++;
+            } else if (subscription.getUsesPerMonth() < 5) {
+                System.out.printf("Варто подумати про відмову: %s — лише %d використання на місяць, %.2f грн за одне%n",
+                        subscription.getName(), subscription.getUsesPerMonth(), subscription.getPricePerUse());
+                monthlySavings += subscription.getMonthlyPrice();
+                adviceCount++;
+            } else if (subscription.getPricePerUse() > 50) {
+                System.out.printf("Варто подумати про відмову: %s — %.2f грн за одне використання%n",
+                        subscription.getName(), subscription.getPricePerUse());
+                monthlySavings += subscription.getMonthlyPrice();
+                adviceCount++;
+            }
+        }
+        if (adviceCount == 0) {
+            System.out.println("Чудово! Усі твої підписки окупаються, так тримати.");
+        } else {
+            System.out.printf("Можлива економія: %.2f грн на місяць, %.2f грн на рік%n",
+                    monthlySavings, monthlySavings * 12);
+        }
+    }
+
     private void printSubscription(int number, Subscription subscription, int todayDay, int todayMonth) {
         System.out.printf("%d. %s (%s, %s): %.2f грн, %.2f грн/міс, до списання %d дн., %.2f грн за раз%n",
                 number,
