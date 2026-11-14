@@ -2,6 +2,14 @@ import java.time.LocalDate;
 import java.util.Scanner;
 
 public class Main {
+    public static final boolean USE_COLORS = true;
+    public static final String RED = "\u001B[31m";
+    public static final String YELLOW = "\u001B[33m";
+    public static final String GREEN = "\u001B[32m";
+    public static final String CYAN = "\u001B[36m";
+    public static final String RESET = "\u001B[0m";
+    public static final String SEPARATOR = "────────────────────────────────────────";
+
     private static final Scanner scanner = new Scanner(System.in);
     private static final SubscriptionManager manager = new SubscriptionManager();
     private static int todayDay;
@@ -45,7 +53,7 @@ public class Main {
                     askAndRemoveSubscription();
                     break;
                 case 9:
-                    manager.loadDemoData();
+                    loadDemoData();
                     break;
                 case 0:
                     running = false;
@@ -61,15 +69,24 @@ public class Main {
     private static void printWelcome() {
         String title = "КУДИ ЙДУТЬ ГРОШІ · трекер підписок";
         String border = "═".repeat(title.length() + 6);
-        System.out.println("╔" + border + "╗");
-        System.out.println("║   " + title + "   ║");
-        System.out.println("╚" + border + "╝");
+        System.out.println(colorize("╔" + border + "╗", CYAN));
+        System.out.println(colorize("║   " + title + "   ║", CYAN));
+        System.out.println(colorize("╚" + border + "╝", CYAN));
         System.out.printf("Сьогодні: %02d.%02d%n", todayDay, todayMonth);
+    }
+
+    private static void printSectionTitle(String title) {
+        String border = "─".repeat(title.length() + 2);
+        System.out.println(colorize("┌" + border + "┐", CYAN));
+        System.out.println(colorize("│ " + title + " │", CYAN));
+        System.out.println(colorize("└" + border + "┘", CYAN));
     }
 
     private static void printMenu() {
         System.out.println();
-        System.out.println("МЕНЮ");
+        System.out.println(colorize(SEPARATOR, CYAN));
+        System.out.println(colorize("МЕНЮ", CYAN));
+        System.out.println(colorize(SEPARATOR, CYAN));
         System.out.println("1. Додати підписку");
         System.out.println("2. Показати всі підписки");
         System.out.println("3. Показати підписки за категорією");
@@ -80,9 +97,11 @@ public class Main {
         System.out.println("8. Видалити підписку");
         System.out.println("9. Завантажити демо-дані");
         System.out.println("0. Вихід");
+        System.out.println(colorize(SEPARATOR, CYAN));
     }
 
     private static void askAndAddSubscription() {
+        printSectionTitle("НОВА ПІДПИСКА");
         String name = readText("Назва підписки: ");
         String category = chooseCategory();
         int type = readInt("Тип (1 — місячна, 2 — річна): ", 1, 2);
@@ -123,40 +142,48 @@ public class Main {
     }
 
     private static void showAllSubscriptions() {
+        printSectionTitle("УСІ ПІДПИСКИ");
         manager.printAll(todayDay, todayMonth);
     }
 
     private static void showSubscriptionsByCategory() {
+        printSectionTitle("ПІДПИСКИ ЗА КАТЕГОРІЄЮ");
         String category = chooseCategory();
+        System.out.println();
         manager.printAll(todayDay, todayMonth, category);
     }
 
     private static void showTotals() {
+        printSectionTitle("СКІЛЬКИ Я ПЛАЧУ");
         double monthly = manager.getTotalMonthly();
         System.out.printf("На місяць: %.2f грн%n", monthly);
         System.out.printf("На рік:    %.2f грн%n", monthly * 12);
     }
 
     private static void showNearestPayment() {
+        printSectionTitle("НАЙБЛИЖЧЕ СПИСАННЯ");
         Subscription nearest = manager.findNearestPayment(todayDay, todayMonth);
         if (nearest == null) {
             System.out.println("Підписок поки немає.");
             return;
         }
         int days = nearest.daysUntilPayment(todayDay, todayMonth);
+        String color = colorForDays(days);
         System.out.printf("Найближче списання: %s, %.2f грн%n", nearest.getName(), nearest.getPrice());
         if (days == 0) {
-            System.out.println("Списання вже сьогодні!");
+            System.out.println(colorize("Списання вже сьогодні!", color));
         } else {
-            System.out.println("Залишилось днів: " + days);
+            System.out.println(colorize("Залишилось днів: " + days, color));
         }
     }
 
     private static void showAdvice() {
+        printSectionTitle("ВІД ЧОГО ВІДМОВИТИСЬ");
         manager.printAdvice();
     }
 
     private static void updateUsesPerMonth() {
+        printSectionTitle("КІЛЬКІСТЬ ВИКОРИСТАНЬ");
         String name = readText("Назва підписки: ");
         Subscription subscription = manager.findByName(name);
         if (subscription == null) {
@@ -169,8 +196,14 @@ public class Main {
     }
 
     private static void askAndRemoveSubscription() {
+        printSectionTitle("ВИДАЛЕННЯ ПІДПИСКИ");
         String name = readText("Назва підписки для видалення: ");
         manager.removeSubscription(name);
+    }
+
+    private static void loadDemoData() {
+        printSectionTitle("ДЕМО-ДАНІ");
+        manager.loadDemoData();
     }
 
     private static void waitForEnter() {
@@ -180,10 +213,28 @@ public class Main {
     }
 
     private static void printGoodbye() {
+        printSectionTitle("ПІДСУМОК");
         int count = manager.getCount();
         System.out.printf("У тебе %d %s, %.2f грн на місяць.%n",
                 count, subscriptionsWord(count), manager.getTotalMonthly());
         System.out.println("До зустрічі!");
+    }
+
+    public static String colorize(String text, String color) {
+        if (USE_COLORS) {
+            return color + text + RESET;
+        }
+        return text;
+    }
+
+    public static String colorForDays(int days) {
+        if (days <= 3) {
+            return RED;
+        }
+        if (days <= 7) {
+            return YELLOW;
+        }
+        return GREEN;
     }
 
     private static String subscriptionsWord(int number) {

@@ -1,4 +1,9 @@
 public class SubscriptionManager {
+    private static final String TABLE_LINE =
+            "────┼──────────────────┼──────────┼───────────┼──────────┼──────────┼─────────────┼────────────";
+    private static final String TABLE_BOTTOM =
+            "────┴──────────────────┴──────────┴───────────┴──────────┴──────────┴─────────────┴────────────";
+
     private Subscription[] subscriptions = new Subscription[20];
     private int count = 0;
 
@@ -88,9 +93,11 @@ public class SubscriptionManager {
             System.out.println("Список підписок порожній.");
             return;
         }
+        printTableHeader();
         for (int i = 0; i < count; i++) {
-            printSubscription(i + 1, subscriptions[i], todayDay, todayMonth);
+            printTableRow(i + 1, subscriptions[i], todayDay, todayMonth);
         }
+        printTableFooter();
     }
 
     public void printAll(int todayDay, int todayMonth, String category) {
@@ -104,13 +111,15 @@ public class SubscriptionManager {
             System.out.println("У категорії «" + category + "» підписок немає.");
             return;
         }
+        printTableHeader();
         int number = 1;
         for (int i = 0; i < count; i++) {
             if (subscriptions[i].getCategory().equals(category)) {
-                printSubscription(number, subscriptions[i], todayDay, todayMonth);
+                printTableRow(number, subscriptions[i], todayDay, todayMonth);
                 number++;
             }
         }
+        printTableFooter();
     }
 
     public double getTotalMonthly() {
@@ -146,39 +155,64 @@ public class SubscriptionManager {
         for (int i = 0; i < count; i++) {
             Subscription subscription = subscriptions[i];
             if (subscription.getUsesPerMonth() == 0) {
-                System.out.printf("%s — ти не користуєшся, а платиш %.2f грн на місяць%n",
+                String advice = String.format("%s — ти не користуєшся, а платиш %.2f грн на місяць",
                         subscription.getName(), subscription.getMonthlyPrice());
+                System.out.println(Main.colorize(advice, Main.RED));
                 monthlySavings += subscription.getMonthlyPrice();
                 adviceCount++;
             } else if (subscription.getUsesPerMonth() < 5) {
-                System.out.printf("Варто подумати про відмову: %s — лише %d використання на місяць, %.2f грн за одне%n",
+                String advice = String.format("Варто подумати про відмову: %s — лише %d використання на місяць, %.2f грн за одне",
                         subscription.getName(), subscription.getUsesPerMonth(), subscription.getPricePerUse());
+                System.out.println(Main.colorize(advice, Main.RED));
                 monthlySavings += subscription.getMonthlyPrice();
                 adviceCount++;
             } else if (subscription.getPricePerUse() > 50) {
-                System.out.printf("Варто подумати про відмову: %s — %.2f грн за одне використання%n",
+                String advice = String.format("Варто подумати про відмову: %s — %.2f грн за одне використання",
                         subscription.getName(), subscription.getPricePerUse());
+                System.out.println(Main.colorize(advice, Main.RED));
                 monthlySavings += subscription.getMonthlyPrice();
                 adviceCount++;
             }
         }
         if (adviceCount == 0) {
-            System.out.println("Чудово! Усі твої підписки окупаються, так тримати.");
+            System.out.println(Main.colorize("Чудово! Усі твої підписки окупаються, так тримати.", Main.GREEN));
         } else {
-            System.out.printf("Можлива економія: %.2f грн на місяць, %.2f грн на рік%n",
+            System.out.println(Main.SEPARATOR);
+            String savings = String.format("Можлива економія: %.2f грн на місяць, %.2f грн на рік",
                     monthlySavings, monthlySavings * 12);
+            System.out.println(Main.colorize(savings, Main.GREEN));
         }
     }
 
-    private void printSubscription(int number, Subscription subscription, int todayDay, int todayMonth) {
-        System.out.printf("%d. %s (%s, %s): %.2f грн, %.2f грн/міс, до списання %d дн., %.2f грн за раз%n",
+    private void printTableHeader() {
+        System.out.printf("%-3s │ %-16s │ %-8s │ %-9s │ %8s │ %8s │ %-11s │ %11s%n",
+                "№", "Назва", "Тип", "Категорія", "Ціна", "/міс", "До списання", "Ціна за раз");
+        System.out.println(TABLE_LINE);
+    }
+
+    private void printTableRow(int number, Subscription subscription, int todayDay, int todayMonth) {
+        int days = subscription.daysUntilPayment(todayDay, todayMonth);
+        String daysText = String.format("%-11s", formatDays(days));
+        System.out.printf("%-3d │ %-16.16s │ %-8s │ %-9s │ %8.2f │ %8.2f │ %s │ %11.2f%n",
                 number,
                 subscription.getName(),
                 subscription.getType(),
                 subscription.getCategory(),
                 subscription.getPrice(),
                 subscription.getMonthlyPrice(),
-                subscription.daysUntilPayment(todayDay, todayMonth),
+                Main.colorize(daysText, Main.colorForDays(days)),
                 subscription.getPricePerUse());
+    }
+
+    private void printTableFooter() {
+        System.out.println(TABLE_BOTTOM);
+        System.out.println("Усі суми вказано в грн.");
+    }
+
+    private String formatDays(int days) {
+        if (days == 0) {
+            return "сьогодні";
+        }
+        return days + " дн.";
     }
 }
