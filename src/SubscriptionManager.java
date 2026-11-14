@@ -28,6 +28,61 @@ public class SubscriptionManager {
         }
     }
 
+    public Subscription findByName(String name) {
+        int index = findIndex(name);
+        if (index == -1) {
+            return null;
+        }
+        return subscriptions[index];
+    }
+
+    public void removeSubscription(String name) {
+        int index = findIndex(name);
+        if (index == -1) {
+            System.out.println("Підписку «" + name + "» не знайдено.");
+            return;
+        }
+        String removedName = subscriptions[index].getName();
+        for (int i = index; i < count - 1; i++) {
+            subscriptions[i] = subscriptions[i + 1];
+        }
+        subscriptions[count - 1] = null;
+        count--;
+        System.out.println("Підписку «" + removedName + "» видалено.");
+    }
+
+    private int findIndex(String name) {
+        for (int i = 0; i < count; i++) {
+            if (subscriptions[i].getName().equalsIgnoreCase(name)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void loadDemoData() {
+        if (count + 6 > subscriptions.length) {
+            System.out.println("Не вистачає місця для демо-даних: потрібно 6 вільних місць.");
+            return;
+        }
+        addSubscription("Spotify", 169.0, "Музика", 12);
+        setLastAddedUses(28);
+        addSubscription("Netflix", 250.0, "Відео", 5);
+        setLastAddedUses(4);
+        addSubscription("YouTube Premium", 149.0, "Відео");
+        setLastAddedUses(20);
+        addSubscription("iCloud", 1188.0, "Хмара", 15, 3);
+        setLastAddedUses(30);
+        addSubscription("Спортзал", 700.0, "Спорт", 3);
+        addSubscription("Google One", 1200.0, "Хмара", 20, 9);
+        setLastAddedUses(1);
+        System.out.println("Демо-дані завантажено: 6 підписок.");
+    }
+
+    private void setLastAddedUses(int usesPerMonth) {
+        subscriptions[count - 1].setUsesPerMonth(usesPerMonth);
+    }
+
     public void printAll(int todayDay, int todayMonth) {
         if (count == 0) {
             System.out.println("Список підписок порожній.");
