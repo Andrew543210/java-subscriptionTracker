@@ -27,4 +27,46 @@ public class SubscriptionManager {
             System.out.println("Підписку «" + subscription.getName() + "» додано.");
         }
     }
+
+    public void printAll(int todayDay, int todayMonth) {
+        if (count == 0) {
+            System.out.println("Список підписок порожній.");
+            return;
+        }
+        for (int i = 0; i < count; i++) {
+            printSubscription(i + 1, subscriptions[i], todayDay, todayMonth);
+        }
+    }
+
+    public void printAll(int todayDay, int todayMonth, String category) {
+        int found = 0;
+        for (int i = 0; i < count; i++) {
+            if (subscriptions[i].getCategory().equals(category)) {
+                found++;
+            }
+        }
+        if (found == 0) {
+            System.out.println("У категорії «" + category + "» підписок немає.");
+            return;
+        }
+        int number = 1;
+        for (int i = 0; i < count; i++) {
+            if (subscriptions[i].getCategory().equals(category)) {
+                printSubscription(number, subscriptions[i], todayDay, todayMonth);
+                number++;
+            }
+        }
+    }
+
+    private void printSubscription(int number, Subscription subscription, int todayDay, int todayMonth) {
+        System.out.printf("%d. %s (%s, %s): %.2f грн, %.2f грн/міс, до списання %d дн., %.2f грн за раз%n",
+                number,
+                subscription.getName(),
+                subscription.getType(),
+                subscription.getCategory(),
+                subscription.getPrice(),
+                subscription.getMonthlyPrice(),
+                subscription.daysUntilPayment(todayDay, todayMonth),
+                subscription.getPricePerUse());
+    }
 }
