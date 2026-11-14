@@ -58,6 +58,29 @@ public class SubscriptionManager {
         }
     }
 
+    public double getTotalMonthly() {
+        double total = 0;
+        for (int i = 0; i < count; i++) {
+            total += subscriptions[i].getMonthlyPrice();
+        }
+        return total;
+    }
+
+    public Subscription findNearestPayment(int todayDay, int todayMonth) {
+        if (count == 0) {
+            return null;
+        }
+        Subscription nearest = subscriptions[0];
+        for (int i = 1; i < count; i++) {
+            int days = subscriptions[i].daysUntilPayment(todayDay, todayMonth);
+            int nearestDays = nearest.daysUntilPayment(todayDay, todayMonth);
+            if (days < nearestDays) {
+                nearest = subscriptions[i];
+            }
+        }
+        return nearest;
+    }
+
     private void printSubscription(int number, Subscription subscription, int todayDay, int todayMonth) {
         System.out.printf("%d. %s (%s, %s): %.2f грн, %.2f грн/міс, до списання %d дн., %.2f грн за раз%n",
                 number,
